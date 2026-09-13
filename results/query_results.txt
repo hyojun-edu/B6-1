@@ -1,0 +1,168 @@
+# SQLite 실행 결과
+# 실행 명령: sqlite3 -header -column :memory: < <(cat schema.sql seed.sql queries.sql)
+
+## Q01 판매 중인 메뉴 상위 5개
+item_id  item_name     price
+1        아메리카노    4500
+13       버터크루아상  4800
+4        얼그레이티    5000
+5        캐모마일티    5000
+2        카페라떼      5500
+
+## Q02 '라떼' 메뉴 검색
+item_name     price
+말차크림라떼  6800
+고구마라떼    6500
+바닐라라떼    6000
+초코라떼      6000
+카페라떼      5500
+
+## Q03 최신 주문 5건
+order_id  customer_id  ordered_at           order_status
+12        2            2025-06-11 10:05:00  PAID
+11        10           2025-06-10 17:50:00  COMPLETED
+10        9            2025-06-09 15:10:00  COMPLETED
+9         8            2025-06-08 09:40:00  CANCELLED
+8         7            2025-06-07 13:25:00  COMPLETED
+
+## Q04 6월 5일 이후 완료 주문
+order_id  customer_id  ordered_at
+6         5            2025-06-05 16:15:00
+8         7            2025-06-07 13:25:00
+10        9            2025-06-09 15:10:00
+11        10           2025-06-10 17:50:00
+
+## Q05 주문-고객 INNER JOIN (앞 8건)
+order_id  name    ordered_at           order_status
+1         김민준  2025-06-01 09:10:00  COMPLETED
+2         이서연  2025-06-01 10:20:00  COMPLETED
+3         박지훈  2025-06-02 12:05:00  COMPLETED
+4         김민준  2025-06-03 08:45:00  COMPLETED
+5         최하은  2025-06-04 14:30:00  READY
+6         정도윤  2025-06-05 16:15:00  COMPLETED
+7         한유진  2025-06-06 11:00:00  PAID
+8         오지호  2025-06-07 13:25:00  COMPLETED
+
+## Q06 주문 상세-메뉴 INNER JOIN (앞 10건)
+order_id  item_name       quantity  unit_price
+1         아메리카노      2         4500
+1         버터크루아상    1         4800
+2         카페라떼        1         5500
+2         치즈케이크      1         6500
+3         레몬에이드      2         6000
+3         햄치즈샌드위치  1         8500
+4         바닐라라떼      1         6000
+4         아메리카노      1         4500
+5         초코라떼        1         6000
+5         티라미수        1         7000
+
+## Q07 주문-고객-상세-메뉴 다중 INNER JOIN (앞 10건)
+order_id  customer_name  item_name       quantity
+1         김민준         아메리카노      2
+1         김민준         버터크루아상    1
+2         이서연         카페라떼        1
+2         이서연         치즈케이크      1
+3         박지훈         레몬에이드      2
+3         박지훈         햄치즈샌드위치  1
+4         김민준         바닐라라떼      1
+4         김민준         아메리카노      1
+5         최하은         초코라떼        1
+5         최하은         티라미수        1
+
+## Q08 주문이 없는 고객까지 포함한 LEFT JOIN
+customer_id  name    order_count
+1            김민준  2
+2            이서연  2
+3            박지훈  1
+4            최하은  1
+5            정도윤  1
+6            한유진  1
+7            오지호  1
+8            윤채원  1
+9            강현우  1
+10           서수빈  1
+
+## Q09 카테고리별 메뉴 수
+category_name  menu_count
+커피           3
+티             2
+논커피         2
+에이드         2
+디저트         2
+스무디         1
+베이커리       1
+샌드위치       1
+시즌 메뉴      1
+원두           0
+
+## Q10 메뉴별 판매 수량 TOP 결과
+item_name       sold_quantity
+아메리카노      5
+카페라떼        3
+레몬에이드      3
+버터크루아상    3
+치즈케이크      2
+티라미수        2
+햄치즈샌드위치  2
+바닐라라떼      1
+얼그레이티      1
+캐모마일티      1
+초코라떼        1
+고구마라떼      1
+자몽에이드      1
+딸기스무디      1
+
+## Q11 카테고리별 평균 가격
+category_name  average_price
+샌드위치       8500.0
+스무디         7000.0
+시즌 메뉴      6800.0
+디저트         6750.0
+논커피         6250.0
+에이드         6250.0
+커피           5333.0
+티             5000.0
+베이커리       4800.0
+
+## Q12 고객별 누적 주문 금액(취소 제외)
+name    total_spent
+김민준  24300
+이서연  22500
+박지훈  20500
+강현우  18000
+정도윤  16600
+오지호  15000
+최하은  13000
+서수빈  13000
+한유진  9500
+
+## Q13 평균보다 비싼 메뉴
+item_name       price
+햄치즈샌드위치  8500
+딸기스무디      7000
+티라미수        7000
+말차크림라떼    6800
+고구마라떼      6500
+자몽에이드      6500
+치즈케이크      6500
+
+## Q14 주문이 없는 고객
+(행 없음: 모든 고객이 주문 1건 이상 보유)
+
+## Q15 품절 메뉴 판매 상태 UPDATE
+item_id  item_name     is_available
+15       말차크림라떼  1
+
+## Q16 취소 주문 DELETE 및 CASCADE 확인
+remaining_cancelled_orders
+0
+
+## Q17 주문일시 인덱스 실행 계획
+QUERY PLAN
+`--SEARCH orders USING COVERING INDEX idx_orders_ordered_at (ordered_at>?)
+
+## Q18 주문 상태별 건수와 금액
+order_status  order_count  order_amount
+COMPLETED     8            119400
+PAID          2            20000
+READY         1            13000
