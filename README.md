@@ -266,3 +266,230 @@ Q21~Q23은 각각 독립 실행 가능한 최종 SQL이며, 샘플 데이터에 
 ## 제한 사항 준수
 
 뷰, 프로시저, 트리거 및 백엔드 프레임워크는 사용하지 않았다. 모든 결과물은 로컬 SQLite CLI에서 실행 가능하며, 스키마 생성 순서와 부모-자식 데이터 입력 순서를 지켰다.
+
+## SQL 실행 화면 스크린샷
+1. Q01
+```
+-- Q01 기본 조회: 판매 중인 메뉴만 가격 오름차순으로 확인
+SELECT item_id, item_name, price FROM menu_items
+WHERE is_available = 1 ORDER BY price ASC, item_name LIMIT 5;
+```
+<img width="488" height="115" alt="image" src="https://github.com/user-attachments/assets/0784d7ae-b34d-44ec-9795-89af4d5cd0b1" />
+
+2. Q02
+```
+-- Q02 기본 조회: 이름에 '라떼'가 포함된 메뉴 검색
+SELECT item_name, price FROM menu_items
+WHERE item_name LIKE '%라떼%' ORDER BY price DESC;
+```
+<img width="411" height="113" alt="Screenshot 2026-09-13 at 9 37 28 PM" src="https://github.com/user-attachments/assets/9de119d5-fb9e-4342-80c9-f1f0bcbb4902" />
+
+3. Q03
+```
+-- Q03 기본 조회: 최신 주문 5건 확인
+SELECT order_id, customer_id, ordered_at, order_status FROM orders
+ORDER BY ordered_at DESC LIMIT 5;
+```
+<img width="527" height="113" alt="image" src="https://github.com/user-attachments/assets/46e5a18d-5f87-4398-ac50-d8958a40ac54" />
+
+4. Q04
+```
+-- Q04 기본 조회: 6월 5일 이후 완료 주문 검색
+SELECT order_id, customer_id, ordered_at FROM orders
+WHERE ordered_at >= '2025-06-05' AND order_status = 'COMPLETED'
+ORDER BY ordered_at;
+```
+<img width="510" height="116" alt="image" src="https://github.com/user-attachments/assets/7d98145c-5bdf-433a-93bc-d1896621f070" />
+
+5. Q05
+```
+-- Q05 INNER JOIN: 주문과 고객 이름 연결
+SELECT o.order_id, c.name, o.ordered_at, o.order_status
+FROM orders o INNER JOIN customers c ON c.customer_id = o.customer_id
+ORDER BY o.order_id LIMIT 8;
+```
+<img width="554" height="174" alt="image" src="https://github.com/user-attachments/assets/5eaa894c-8545-49c2-8659-0db31109e41d" />
+
+6. Q06
+```
+-- Q06 INNER JOIN: 주문 상세와 메뉴명 연결
+SELECT oi.order_id, m.item_name, oi.quantity, oi.unit_price
+FROM order_items oi INNER JOIN menu_items m ON m.item_id = oi.item_id
+ORDER BY oi.order_id, oi.order_item_id LIMIT 10;
+```
+<img width="552" height="198" alt="image" src="https://github.com/user-attachments/assets/21f34b35-b93c-4195-9df2-7bf170224c86" />
+
+7. Q07
+```
+-- Q07 INNER JOIN: 주문/고객/메뉴를 한 번에 확인
+SELECT o.order_id, c.name AS customer_name, m.item_name, oi.quantity
+FROM orders o
+JOIN customers c ON c.customer_id = o.customer_id
+JOIN order_items oi ON oi.order_id = o.order_id
+JOIN menu_items m ON m.item_id = oi.item_id
+WHERE o.order_status <> 'CANCELLED'
+ORDER BY o.order_id LIMIT 10;
+```
+<img width="545" height="256" alt="image" src="https://github.com/user-attachments/assets/2de2869d-89ac-4c8e-905e-fe5b4eb4e781" />
+
+8. Q08
+```
+-- Q08 LEFT JOIN: 주문이 한 번도 없는 고객도 포함
+SELECT c.customer_id, c.name, COUNT(o.order_id) AS order_count
+FROM customers c LEFT JOIN orders o ON o.customer_id = c.customer_id
+GROUP BY c.customer_id, c.name ORDER BY order_count DESC, c.customer_id;
+```
+<img width="574" height="211" alt="image" src="https://github.com/user-attachments/assets/e4bbed9c-ac15-4604-9806-c52f09888043" />
+
+9. Q09
+```
+-- Q09 GROUP BY/COUNT: 카테고리별 메뉴 수
+SELECT mc.category_name, COUNT(mi.item_id) AS menu_count
+FROM menu_categories mc LEFT JOIN menu_items mi ON mi.category_id = mc.category_id
+GROUP BY mc.category_id, mc.category_name ORDER BY menu_count DESC, mc.category_id;
+```
+<img width="656" height="196" alt="image" src="https://github.com/user-attachments/assets/ac50e176-c61d-4279-b79e-e075bc6524aa" />
+
+10. Q10
+```
+-- Q10 GROUP BY/SUM: 메뉴별 판매 수량
+SELECT m.item_name, SUM(oi.quantity) AS sold_quantity
+FROM menu_items m JOIN order_items oi ON oi.item_id = m.item_id
+GROUP BY m.item_id, m.item_name ORDER BY sold_quantity DESC, m.item_id;
+```
+<img width="570" height="254" alt="image" src="https://github.com/user-attachments/assets/14c5d5ad-e763-4d90-a003-71ca75fb1477" />
+
+11. Q11
+```
+-- Q11 GROUP BY/AVG: 카테고리별 평균 메뉴 가격
+SELECT mc.category_name, ROUND(AVG(mi.price), 0) AS average_price
+FROM menu_categories mc JOIN menu_items mi ON mi.category_id = mc.category_id
+GROUP BY mc.category_id, mc.category_name ORDER BY average_price DESC;
+```
+<img width="612" height="169" alt="image" src="https://github.com/user-attachments/assets/82f8086b-58cc-476a-99dd-239fb86c2e5b" />
+
+12. Q12
+```
+-- Q12 GROUP BY/SUM: 고객별 누적 주문 금액(취소 주문 제외)
+SELECT c.name, SUM(oi.quantity * oi.unit_price) AS total_spent
+FROM customers c JOIN orders o ON o.customer_id = c.customer_id
+JOIN order_items oi ON oi.order_id = o.order_id
+WHERE o.order_status <> 'CANCELLED'
+GROUP BY c.customer_id, c.name ORDER BY total_spent DESC;
+```
+<img width="519" height="215" alt="image" src="https://github.com/user-attachments/assets/fd9f0cd4-0128-473b-b4d4-2a6d50a5b486" />
+
+13. Q13
+```
+-- Q13 서브쿼리: 평균 메뉴 가격보다 비싼 메뉴
+SELECT item_name, price FROM menu_items
+WHERE price > (SELECT AVG(price) FROM menu_items)
+ORDER BY price DESC;
+```
+<img width="427" height="155" alt="image" src="https://github.com/user-attachments/assets/e3bae78c-9e12-4cdf-8989-f7b0a9624a9a" />
+
+14. Q14
+```
+-- Q14 서브쿼리: 주문을 한 번도 하지 않은 고객
+SELECT customer_id, name FROM customers
+WHERE customer_id NOT IN (SELECT customer_id FROM orders)
+ORDER BY customer_id;
+```
+<img width="475" height="70" alt="image" src="https://github.com/user-attachments/assets/fae55f26-6cbf-4819-8b8d-79e2652d1bed" />
+
+15. Q15
+```
+-- Q15 UPDATE: 품절 메뉴의 판매 상태 변경
+UPDATE menu_items SET is_available = 1 WHERE item_name = '말차크림라떼';
+SELECT item_id, item_name, is_available FROM menu_items WHERE item_name = '말차크림라떼';
+```
+<img width="693" height="59" alt="image" src="https://github.com/user-attachments/assets/8866d631-36fd-48c3-94e6-9b5263577aad" />
+
+16. Q16
+```
+-- Q16 DELETE: 취소 주문의 상세 데이터 삭제(ON DELETE CASCADE 확인)
+DELETE FROM orders WHERE order_status = 'CANCELLED';
+SELECT COUNT(*) AS remaining_cancelled_orders FROM orders WHERE order_status = 'CANCELLED';
+```
+<img width="709" height="59" alt="image" src="https://github.com/user-attachments/assets/3c375872-5937-4698-aae4-a22742609dc0" />
+
+17. Q17
+```
+EXPLAIN QUERY PLAN
+SELECT order_id, ordered_at FROM orders
+WHERE ordered_at >= '2025-06-08' ORDER BY ordered_at;
+```
+<img width="546" height="71" alt="image" src="https://github.com/user-attachments/assets/8f149c91-540e-472e-b48b-c8304012e8aa" />
+
+18. Q18
+```
+-- Q18 미니 리포트: 주문 상태별 건수와 금액
+SELECT o.order_status, COUNT(DISTINCT o.order_id) AS order_count,
+       COALESCE(SUM(oi.quantity * oi.unit_price), 0) AS order_amount
+FROM orders o LEFT JOIN order_items oi ON oi.order_id = o.order_id
+GROUP BY o.order_status ORDER BY order_amount DESC;
+```
+<img width="554" height="113" alt="image" src="https://github.com/user-attachments/assets/774ae2c0-fdf5-4fae-81ca-db3658098223" />
+
+19. Q19
+```
+-- BONUS Q19 같은 요구를 JOIN으로 해결: 주문 이력이 있는 고객 목록
+SELECT DISTINCT c.customer_id, c.name
+FROM customers c JOIN orders o ON o.customer_id = c.customer_id
+WHERE o.order_status <> 'CANCELLED'
+ORDER BY c.customer_id;
+```
+<img width="544" height="199" alt="image" src="https://github.com/user-attachments/assets/3b7ce906-5401-4227-9a5a-b8bbdf794c9e" />
+
+20. Q20
+```
+-- BONUS Q20 같은 요구를 EXISTS 서브쿼리로 해결: 주문 이력이 있는 고객 목록
+SELECT c.customer_id, c.name
+FROM customers c
+WHERE EXISTS (
+    SELECT 1 FROM orders o
+    WHERE o.customer_id = c.customer_id AND o.order_status <> 'CANCELLED'
+)
+ORDER BY c.customer_id;
+```
+<img width="598" height="240" alt="image" src="https://github.com/user-attachments/assets/7ccde3e8-2f46-41ec-983f-6f7dbbab7ecc" />
+
+21. Q21
+```
+-- BONUS Q21 미니 리포트 지표 1: 월별 완료 주문 건수와 매출
+SELECT substr(o.ordered_at, 1, 7) AS order_month,
+       COUNT(DISTINCT o.order_id) AS completed_order_count,
+       SUM(oi.quantity * oi.unit_price) AS completed_sales
+FROM orders o JOIN order_items oi ON oi.order_id = o.order_id
+WHERE o.order_status = 'COMPLETED'
+GROUP BY substr(o.ordered_at, 1, 7)
+ORDER BY order_month;
+```
+<img width="500" height="127" alt="image" src="https://github.com/user-attachments/assets/22d62752-0709-4633-b0a2-e47cdd2f8274" />
+
+22. Q22
+```
+-- BONUS Q22 미니 리포트 지표 2: 인기 메뉴 TOP 10
+SELECT m.item_name, SUM(oi.quantity) AS sold_quantity,
+       SUM(oi.quantity * oi.unit_price) AS sales_amount
+FROM menu_items m JOIN order_items oi ON oi.item_id = m.item_id
+JOIN orders o ON o.order_id = oi.order_id
+WHERE o.order_status <> 'CANCELLED'
+GROUP BY m.item_id, m.item_name
+ORDER BY sold_quantity DESC, sales_amount DESC, m.item_id
+LIMIT 10;
+```
+<img width="517" height="269" alt="image" src="https://github.com/user-attachments/assets/366344eb-8f93-42bc-9676-a182cf45b38b" />
+
+23. Q23
+```
+-- BONUS Q23 미니 리포트 지표 3: 고객별 누적 매출 랭킹
+SELECT c.name, SUM(oi.quantity * oi.unit_price) AS total_spent,
+       RANK() OVER (ORDER BY SUM(oi.quantity * oi.unit_price) DESC) AS spending_rank
+FROM customers c JOIN orders o ON o.customer_id = c.customer_id
+JOIN order_items oi ON oi.order_id = o.order_id
+WHERE o.order_status <> 'CANCELLED'
+GROUP BY c.customer_id, c.name
+ORDER BY spending_rank, c.name;
+```
+<img width="670" height="240" alt="image" src="https://github.com/user-attachments/assets/f5047caf-ae69-4a9a-8dce-0d19386b6bb7" />
