@@ -55,7 +55,7 @@ customers (1) ───< orders (1) ───< order_items >─── (1) menu_i
 
 각 테이블의 PK는 행을 식별하고, FK는 존재하는 부모 데이터만 참조하도록 관계와 무결성을 보장한다. `customers.email`, `menu_categories.category_name`, `menu_items.item_name`에는 UNIQUE를 적용했으며, 주요 컬럼에는 NOT NULL과 CHECK 제약조건을 적용했다. 주문 삭제 시 상세도 함께 삭제되도록 `ON DELETE CASCADE`를 사용했다.
 
-초기 데이터 행 수는 `customers` 10, `menu_categories` 10, `menu_items` 15, `orders` 12, `order_items` 23개다.
+초기 데이터 행 수는 `customers` 11, `menu_categories` 10, `menu_items` 15, `orders` 12, `order_items` 23개다. 이 중 `김예은`은 아직 주문 이력이 없는 고객으로, Q08과 Q14에서 LEFT JOIN과 미주문 고객 조회 결과를 확인할 수 있다.
 
 ### 주요 컬럼의 데이터 타입 선택 근거
 

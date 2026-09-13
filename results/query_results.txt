@@ -81,6 +81,7 @@ customer_id  name    order_count
 8            윤채원  1
 9            강현우  1
 10           서수빈  1
+11           김예은  0
 
 ## Q09 카테고리별 메뉴 수
 category_name  menu_count
@@ -147,7 +148,8 @@ item_name       price
 치즈케이크      6500
 
 ## Q14 주문이 없는 고객
-(행 없음: 모든 고객이 주문 1건 이상 보유)
+customer_id  name
+11           김예은
 
 ## Q15 품절 메뉴 판매 상태 UPDATE
 item_id  item_name     is_available

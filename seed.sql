@@ -11,7 +11,8 @@ INSERT INTO customers (customer_id, name, email, joined_at) VALUES
  (7, '오지호', 'jiho.oh@example.com', '2025-04-04'),
  (8, '윤채원', 'chaewon.yoon@example.com', '2025-04-19'),
  (9, '강현우', 'hyunwoo.kang@example.com', '2025-05-08'),
- (10, '서수빈', 'subin.seo@example.com', '2025-05-22');
+ (10, '서수빈', 'subin.seo@example.com', '2025-05-22'),
+ (11, '김예은', 'yeeun.kim@example.com', '2025-06-12');
 
 INSERT INTO menu_categories (category_id, category_name) VALUES
  (1, '커피'), (2, '티'), (3, '논커피'), (4, '에이드'), (5, '스무디'),
