@@ -92,3 +92,46 @@ SELECT o.order_status, COUNT(DISTINCT o.order_id) AS order_count,
        COALESCE(SUM(oi.quantity * oi.unit_price), 0) AS order_amount
 FROM orders o LEFT JOIN order_items oi ON oi.order_id = o.order_id
 GROUP BY o.order_status ORDER BY order_amount DESC;
+
+-- BONUS Q19 같은 요구를 JOIN으로 해결: 주문 이력이 있는 고객 목록
+SELECT DISTINCT c.customer_id, c.name
+FROM customers c JOIN orders o ON o.customer_id = c.customer_id
+WHERE o.order_status <> 'CANCELLED'
+ORDER BY c.customer_id;
+
+-- BONUS Q20 같은 요구를 EXISTS 서브쿼리로 해결: 주문 이력이 있는 고객 목록
+SELECT c.customer_id, c.name
+FROM customers c
+WHERE EXISTS (
+    SELECT 1 FROM orders o
+    WHERE o.customer_id = c.customer_id AND o.order_status <> 'CANCELLED'
+)
+ORDER BY c.customer_id;
+
+-- BONUS Q21 미니 리포트 지표 1: 월별 완료 주문 건수와 매출
+SELECT substr(o.ordered_at, 1, 7) AS order_month,
+       COUNT(DISTINCT o.order_id) AS completed_order_count,
+       SUM(oi.quantity * oi.unit_price) AS completed_sales
+FROM orders o JOIN order_items oi ON oi.order_id = o.order_id
+WHERE o.order_status = 'COMPLETED'
+GROUP BY substr(o.ordered_at, 1, 7)
+ORDER BY order_month;
+
+-- BONUS Q22 미니 리포트 지표 2: 인기 메뉴 TOP 10
+SELECT m.item_name, SUM(oi.quantity) AS sold_quantity,
+       SUM(oi.quantity * oi.unit_price) AS sales_amount
+FROM menu_items m JOIN order_items oi ON oi.item_id = m.item_id
+JOIN orders o ON o.order_id = oi.order_id
+WHERE o.order_status <> 'CANCELLED'
+GROUP BY m.item_id, m.item_name
+ORDER BY sold_quantity DESC, sales_amount DESC, m.item_id
+LIMIT 10;
+
+-- BONUS Q23 미니 리포트 지표 3: 고객별 누적 매출 랭킹
+SELECT c.name, SUM(oi.quantity * oi.unit_price) AS total_spent,
+       RANK() OVER (ORDER BY SUM(oi.quantity * oi.unit_price) DESC) AS spending_rank
+FROM customers c JOIN orders o ON o.customer_id = c.customer_id
+JOIN order_items oi ON oi.order_id = o.order_id
+WHERE o.order_status <> 'CANCELLED'
+GROUP BY c.customer_id, c.name
+ORDER BY spending_rank, c.name;

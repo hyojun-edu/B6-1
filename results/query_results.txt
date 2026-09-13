@@ -166,3 +166,56 @@ order_status  order_count  order_amount
 COMPLETED     8            119400
 PAID          2            20000
 READY         1            13000
+
+## BONUS Q19 JOIN: 취소되지 않은 주문 이력이 있는 고객
+customer_id  name
+1            김민준
+2            이서연
+3            박지훈
+4            최하은
+5            정도윤
+6            한유진
+7            오지호
+9            강현우
+10           서수빈
+
+## BONUS Q20 EXISTS 서브쿼리: 취소되지 않은 주문 이력이 있는 고객
+customer_id  name
+1            김민준
+2            이서연
+3            박지훈
+4            최하은
+5            정도윤
+6            한유진
+7            오지호
+9            강현우
+10           서수빈
+
+## BONUS Q21 월별 완료 주문 건수와 매출
+order_month  completed_order_count  completed_sales
+2025-06      8                      119400
+
+## BONUS Q22 인기 메뉴 TOP 10
+item_name       sold_quantity  sales_amount
+아메리카노      5              22500
+레몬에이드      3              18000
+카페라떼        3              16500
+버터크루아상    3              14400
+햄치즈샌드위치  2              17000
+티라미수        2              14000
+치즈케이크      2              13000
+딸기스무디      1              7000
+고구마라떼      1              6500
+자몽에이드      1              6500
+
+## BONUS Q23 고객별 누적 매출 랭킹
+name    total_spent  spending_rank
+김민준  24300        1
+이서연  22500        2
+박지훈  20500        3
+강현우  18000        4
+정도윤  16600        5
+오지호  15000        6
+서수빈  13000        7
+최하은  13000        7
+한유진  9500         9
