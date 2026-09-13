@@ -57,6 +57,20 @@ customers (1) ───< orders (1) ───< order_items >─── (1) menu_i
 
 초기 데이터 행 수는 `customers` 10, `menu_categories` 10, `menu_items` 15, `orders` 12, `order_items` 23개다.
 
+### 주요 컬럼의 데이터 타입 선택 근거
+
+SQLite에서는 `DATE`와 `DATETIME`이 별도의 저장 클래스를 강제하는 타입은 아니지만, 컬럼의 의미와 입력 형식을 명확히 나타내고 ISO-8601 형식으로 저장하면 날짜·시간순 정렬과 범위 조건을 일관되게 사용할 수 있다.
+
+| 컬럼(예시) | 타입 | 선택 근거 |
+| --- | --- | --- |
+| 각 테이블의 `*_id`, FK인 `customer_id`, `category_id`, `item_id`, `order_id` | `INTEGER` | 식별자와 조인 키는 정수로 표현하면 비교·조인이 단순하고 저장 공간이 작다. 특히 SQLite의 `INTEGER PRIMARY KEY`는 행 식별자와 연결되어 효율적으로 저장·조회된다. |
+| `customers.joined_at` | `DATE` | 가입일은 일 단위만 필요하고 시·분·초까지의 정밀도가 업무 의미에 포함되지 않으므로 `DATE`를 선택했다. `YYYY-MM-DD` 형식이면 날짜순 정렬과 기간 검색도 가능하다. |
+| `orders.ordered_at` | `DATETIME` | 주문 시점은 같은 날짜 안에서도 순서가 중요하므로 시·분·초를 저장한다. `YYYY-MM-DD HH:MM:SS` 형식으로 최신 주문 정렬과 시간 범위 조회를 지원한다. |
+| `price`, `unit_price` | `INTEGER` | 금액을 원화처럼 소수점 없는 최소 단위로 저장하므로 부동소수점 오차가 없다. `SUM`·`AVG` 같은 집계가 정확하고 값 자체도 작아 저장·비교가 효율적이다. 소수 화폐가 필요하면 최소 화폐 단위로 환산하거나 별도 정밀 수치 타입을 검토해야 한다. |
+| `quantity` | `INTEGER` | 주문 수량은 개수이므로 정수만 허용하며, `CHECK (quantity > 0)`으로 유효 범위를 제한한다. 수량 합계와 정렬·집계에 적합하다. |
+| `is_available` | `INTEGER` (`0`/`1`) | SQLite에서 불리언 값을 정수로 표현하는 관례를 따랐다. `0`은 판매 불가, `1`은 판매 가능으로 저장하고 `CHECK`로 다른 값을 차단한다. |
+| `name`, `email`, `category_name`, `item_name`, `order_status` | `TEXT` | 이름·이메일·상태는 문자열 자체의 의미를 보존해야 하며, 상태는 정해진 문자열을 `CHECK`로 제한한다. 검색·정렬·`UNIQUE` 비교가 자연스럽다. |
+
 ## 쿼리 구성
 
 `queries.sql`의 18개 쿼리는 요구 범주를 모두 포함한다.
